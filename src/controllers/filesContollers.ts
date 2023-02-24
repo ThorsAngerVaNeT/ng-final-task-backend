@@ -1,9 +1,11 @@
 import fs from 'fs';
+import { parse } from 'path';
 import { Response, Request } from 'express';
 import cloudinary from 'cloudinary';
 import { createError } from '../services/error.service';
 import * as fileService from '../services/file.service';
 import * as boardService from '../services/board.service';
+import { CLOUDINARY_FOLDER_NAME } from '../constants';
 
 
 
@@ -47,7 +49,8 @@ export const findFiles = async (req: Request, res: Response) => {
 
 const uploadToCloudinary = async (filePath: string) => {
   try {
-    const response = await cloudinary.v2.uploader.upload(filePath);
+    const { name: publicId } = parse(filePath);
+    const response = await cloudinary.v2.uploader.upload(filePath, { public_id: publicId, folder: CLOUDINARY_FOLDER_NAME ?? '' });
 
     return response.secure_url;
   } catch (error) {
