@@ -48,10 +48,18 @@ export const uploadFile = async (req: Request, res: Response) => {
     return res.status(402).send(createError(402, "file exist"));
   } else if (req.params.error === "file not allowed") {
     return res.status(400).send(createError(400, "only images"));
-  } else if (req.params.error) {
+  } else if (req.params.error || !req.file) {
     return res.status(400).send(createError(400, req.params.error));
   }
-  return res.json(await fileService.getFileById(req.params.fileId));
+
+  const { taskId, boardId } = req.body;
+  const { originalname: name, path }: Express.Multer.File = req.file;
+
+  const guid = `${req.header('Guid')}`;
+  const initUser = `${req.header('initUser')}`;
+  const newFile = await fileService.createFile({ taskId, name, path, boardId }, guid, initUser);
+
+  return res.json(newFile);
 };
 
 export const deleteFile = async (req: Request, res: Response) => {
