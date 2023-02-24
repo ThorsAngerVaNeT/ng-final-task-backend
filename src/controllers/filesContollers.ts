@@ -52,8 +52,9 @@ const uploadToCloudinary = async (filePath: string) => {
     return response.secure_url;
   } catch (error) {
     throw error;
+  } finally {
+    fs.promises.unlink(filePath);
   }
-  fs.promises.unlink(filePath);
 }
 
 export const uploadFile = async (req: Request, res: Response) => {
