@@ -1,2 +1,5 @@
-export const PORT = 3000;
-export const SECRET_KEY = 'myVerySecretKey-04.05.2022';
+import * as dotenv from 'dotenv';
+dotenv.config()
+
+
+export const { DB_USERNAME, DB_PASSWORD, CLUSTER_URL, PORT, SECRET_KEY } = process.env;

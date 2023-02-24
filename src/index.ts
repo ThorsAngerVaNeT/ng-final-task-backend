@@ -1,11 +1,8 @@
 import mongoose from 'mongoose';
-import { PORT } from './constants';
-import * as dotenv from 'dotenv';
-dotenv.config()
+import { CLUSTER_URL, DB_PASSWORD, DB_USERNAME, PORT } from './constants';
 
 import * as serverService from './services/server.service';
 
-const { DB_USERNAME, DB_PASSWORD, CLUSTER_URL } = process.env;
 
 (async () => {
   try {
