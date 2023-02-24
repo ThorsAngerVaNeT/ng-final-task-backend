@@ -1,6 +1,7 @@
-import { Response, Request } from 'express';
-import { createError } from '../services/error.service';
 import fs from 'fs';
+import { Response, Request } from 'express';
+import cloudinary from 'cloudinary';
+import { createError } from '../services/error.service';
 import * as fileService from '../services/file.service';
 import * as boardService from '../services/board.service';
 
@@ -43,6 +44,18 @@ export const findFiles = async (req: Request, res: Response) => {
   }
 };
 
+
+const uploadToCloudinary = async (filePath: string) => {
+  try {
+    const response = await cloudinary.v2.uploader.upload(filePath);
+
+    return response.secure_url;
+  } catch (error) {
+    throw error;
+  }
+  fs.promises.unlink(filePath);
+}
+
 export const uploadFile = async (req: Request, res: Response) => {
   if (req.params.error === "file exist") {
     return res.status(402).send(createError(402, "file exist"));
@@ -52,14 +65,19 @@ export const uploadFile = async (req: Request, res: Response) => {
     return res.status(400).send(createError(400, req.params.error));
   }
 
-  const { taskId, boardId } = req.body;
-  const { originalname: name, path }: Express.Multer.File = req.file;
+  try {
+    const { taskId, boardId } = req.body;
+    const { originalname: name, path }: Express.Multer.File = req.file;
+    const imageUrl = await uploadToCloudinary(path);
 
-  const guid = `${req.header('Guid')}`;
-  const initUser = `${req.header('initUser')}`;
-  const newFile = await fileService.createFile({ taskId, name, path, boardId }, guid, initUser);
+    const guid = `${req.header('Guid')}`;
+    const initUser = `${req.header('initUser')}`;
+    const newFile = await fileService.createFile({ taskId, name, path: imageUrl, boardId }, guid, initUser);
 
-  return res.json(newFile);
+    return res.json(newFile);
+  } catch (error) {
+    return res.send(error);
+  }
 };
 
 export const deleteFile = async (req: Request, res: Response) => {
