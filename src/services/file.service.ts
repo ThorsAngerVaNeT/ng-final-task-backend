@@ -34,9 +34,9 @@ export const findFiles = (params: any) => {
 }
 
 export const deleteFileById = async (id: string, guid: string, initUser: string, emit = true, notify = true) => {
-  const fileId = new ObjectId(id);
-  const deletedFile = await file.findByIdAndDelete(fileId);
   try {
+    const fileId = new ObjectId(id);
+    const deletedFile = await file.findByIdAndDelete(fileId);
     await cloudinary.v2.uploader.destroy(parse(deletedFile.path).name);
     if (emit) {
       socket.emit('files', {
