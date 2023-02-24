@@ -1,8 +1,9 @@
-import file from '../models/file';
-import fs from 'fs';
 import { ObjectId } from 'mongodb';
+import cloudinary from 'cloudinary';
+import file from '../models/file';
 import { socket } from './server.service';
 import * as boardService from './board.service';
+import { parse } from 'path';
 
 export const createFile = async (params: any, guid: string, initUser: string, emit = true, notify = true) => {
   const newFile = new file(params);
@@ -35,20 +36,22 @@ export const findFiles = (params: any) => {
 export const deleteFileById = async (id: string, guid: string, initUser: string, emit = true, notify = true) => {
   const fileId = new ObjectId(id);
   const deletedFile = await file.findByIdAndDelete(fileId);
-  fs.unlink(deletedFile.path, (err) => {
-    if (err) console.log(err);
-  });
-  if (emit) {
-    socket.emit('files', {
-      action: 'delete',
-      users: await boardService.getUserIdsByBoardsIds([deletedFile.boardId]),
-      ids: [deletedFile._id],
-      guid,
-      notify,
-      initUser
-    });
+  try {
+    await cloudinary.v2.uploader.destroy(parse(deletedFile.path).name);
+    if (emit) {
+      socket.emit('files', {
+        action: 'delete',
+        users: await boardService.getUserIdsByBoardsIds([deletedFile.boardId]),
+        ids: [deletedFile._id],
+        guid,
+        notify,
+        initUser
+      });
+    }
+    return deletedFile;
+  } catch (error) {
+    throw error;
   }
-  return deletedFile;
 }
 
 export const deletedFilesByTask = async (taskId: string, guid: string, initUser: string) => {
