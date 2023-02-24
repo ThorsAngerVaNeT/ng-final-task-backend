@@ -4,6 +4,7 @@ import file from '../models/file';
 import { socket } from './server.service';
 import * as boardService from './board.service';
 import { parse } from 'path';
+import { CLOUDINARY_FOLDER_NAME } from '../constants';
 
 export const createFile = async (params: any, guid: string, initUser: string, emit = true, notify = true) => {
   const newFile = new file(params);
@@ -37,7 +38,9 @@ export const deleteFileById = async (id: string, guid: string, initUser: string,
   try {
     const fileId = new ObjectId(id);
     const deletedFile = await file.findByIdAndDelete(fileId);
-    await cloudinary.v2.uploader.destroy(parse(deletedFile.path).name);
+    const publicId = `${CLOUDINARY_FOLDER_NAME}/${parse(deletedFile.path).name}`;
+    await cloudinary.v2.uploader.destroy(publicId);
+
     if (emit) {
       socket.emit('files', {
         action: 'delete',
