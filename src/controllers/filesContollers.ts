@@ -50,7 +50,7 @@ export const findFiles = async (req: Request, res: Response) => {
 const uploadToCloudinary = async (filePath: string) => {
   try {
     const { name: publicId } = parse(filePath);
-    const response = await cloudinary.v2.uploader.upload(filePath, { public_id: publicId, folder: CLOUDINARY_FOLDER_NAME ?? '' });
+    const response = await cloudinary.v2.uploader.upload(filePath, { public_id: publicId, folder: CLOUDINARY_FOLDER_NAME });
 
     return response.secure_url;
   } catch (error) {
